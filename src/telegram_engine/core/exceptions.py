@@ -36,3 +36,7 @@ class UnauthorizedError(TelegramEngineError):
 
 class TelegramOperationError(TelegramEngineError):
     """Telegram rejected or failed an operation."""
+
+
+class AccountUnavailableError(TelegramEngineError):
+    """The account exists but is not connected."""

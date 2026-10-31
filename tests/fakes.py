@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from telegram_engine.accounts.models import Account, AccountStatus, ConnectionReport, TelegramProfile
+from telegram_engine.accounts.models import Account, AccountStatus, ConnectionReport, SentMessage, TelegramProfile
 from telegram_engine.core.exceptions import InvalidOtpError, SessionUnavailableError, TwoFactorRequiredError
 
 
@@ -59,6 +59,7 @@ class FakeTelegramGateway:
         self.connected: dict[UUID, bool] = {}
         self.restore_ok = True
         self.inspect_missing = False
+        self.sent: list[tuple] = []
 
     async def request_otp(self, account_id: UUID, phone_number: str) -> None:
         self.otp_requested.add(account_id)
@@ -119,6 +120,10 @@ class FakeTelegramGateway:
             username=profile.username if profile else None,
             first_name=profile.first_name if profile else None,
         )
+
+    async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage:
+        self.sent.append((account_id, chat, text))
+        return SentMessage(outbound_id=str(len(self.sent)), chat=chat)
 
     async def has_pending_auth(self, account_id: UUID) -> bool:
         return account_id in self.otp_requested

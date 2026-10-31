@@ -116,3 +116,28 @@ def test_check_account():
     assert body["authorized"] is True
     assert body["connected"] is True
     assert body["available"] is True
+
+
+def test_send_message():
+    client, telegram, _ = make_client()
+    login = client.post("/accounts/login", json={"phone_number": "+15550001111"}, headers=auth_headers())
+    account_id = login.json()["account_id"]
+    denied = client.post(
+        "/send",
+        json={"account": account_id, "to": "someone", "message": "hello"},
+        headers=auth_headers(),
+    )
+    assert denied.status_code == 409
+    client.post(
+        "/accounts/verify-otp",
+        json={"account_id": account_id, "otp": "12345"},
+        headers=auth_headers(),
+    )
+    sent = client.post(
+        "/send",
+        json={"account": account_id, "to": "someone", "message": "hello"},
+        headers=auth_headers(),
+    )
+    assert sent.status_code == 200
+    assert sent.json()["to"] == "someone"
+    assert telegram.sent[0][2] == "hello"

@@ -1,7 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
-from telegram_engine.accounts.models import Account, ConnectionReport, TelegramProfile
+from telegram_engine.accounts.models import Account, ConnectionReport, SentMessage, TelegramProfile
 
 
 class AccountStore(Protocol):
@@ -30,6 +30,8 @@ class TelegramGateway(Protocol):
     async def restore(self, account_id: UUID, session_payload: str) -> bool: ...
 
     async def inspect(self, account_id: UUID) -> ConnectionReport: ...
+
+    async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage: ...
 
     async def has_pending_auth(self, account_id: UUID) -> bool: ...
 

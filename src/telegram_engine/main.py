@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI
 
 from telegram_engine.accounts.service import AccountService
 from telegram_engine.api.accounts import router as accounts_router
+from telegram_engine.api.messages import router as messages_router
 from telegram_engine.api.deps import create_api_key_dependency
 from telegram_engine.core.config import Settings, get_settings
 from telegram_engine.database.engine import create_session_factory, init_schema
@@ -39,6 +40,10 @@ def create_app(
         app.state.account_service = service
     app.include_router(
         accounts_router,
+        dependencies=[Depends(create_api_key_dependency(settings))],
+    )
+    app.include_router(
+        messages_router,
         dependencies=[Depends(create_api_key_dependency(settings))],
     )
     return app

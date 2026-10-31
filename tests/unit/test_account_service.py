@@ -5,6 +5,7 @@ import pytest
 from telegram_engine.accounts.models import AccountStatus
 from telegram_engine.accounts.service import AccountService
 from telegram_engine.core.exceptions import (
+    AccountUnavailableError,
     DuplicatePhoneError,
     ExpiredOtpError,
     InvalidOtpError,
@@ -161,3 +162,15 @@ async def test_restore_marks_error_when_session_revoked():
 
     stored = (await store.list_all())[0]
     assert stored.status == AccountStatus.ERROR
+
+
+@pytest.mark.asyncio
+async def test_send_message_uses_connected_account():
+    service, _, telegram, _ = make_service()
+    account = await service.login("+15550005555")
+    with pytest.raises(AccountUnavailableError):
+        await service.send_message(account.id, "someone", "hello")
+    connected = await service.verify_otp(account.id, "12345")
+    sent = await service.send_message(connected.id, "someone", "hello")
+    assert sent.chat == "someone"
+    assert telegram.sent == [(connected.id, "someone", "hello")]

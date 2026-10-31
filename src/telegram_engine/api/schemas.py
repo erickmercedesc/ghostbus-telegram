@@ -37,6 +37,18 @@ class AccountResponse(BaseModel):
     last_connected_at: datetime | None
 
 
+class SendMessageRequest(BaseModel):
+    account: UUID
+    to: str = Field(min_length=1, max_length=255)
+    message: str = Field(min_length=1)
+
+
+class SendMessageResponse(BaseModel):
+    account_id: UUID
+    to: str
+    outbound_id: str
+
+
 class CheckResponse(BaseModel):
     id: UUID
     status: str

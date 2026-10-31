@@ -4,7 +4,7 @@ Fuente única de la arquitectura. Cada pieza aparece aquí una vez, con una sola
 
 ## Estado
 
-Servicio FastAPI que registra cuentas personales de Telegram, autentica con OTP/2FA y mantiene sesiones Telethon vivas y persistidas. Fuera de alcance: mensajes, grupos, scripts, workers y dashboard.
+Servicio FastAPI que registra cuentas personales de Telegram, autentica con OTP/2FA, mantiene sesiones Telethon vivas y envía mensajes con una cuenta conectada. Fuera de alcance: grupos, scripts, workers y dashboard.
 
 ## Arranque
 
@@ -35,13 +35,15 @@ api  →  accounts.AccountService  →  AccountStore | TelegramGateway | Session
 | `core.security` | Validar la API key interna | `Settings` |
 | `accounts.models` | Tipos de cuenta, estado y reporte de conexión | — |
 | `accounts.ports` | Contratos de persistencia, Telegram y sesiones | `accounts.models` |
-| `accounts.AccountService` | Login, OTP, 2FA, listado, check en vivo y restore | `AccountStore`, `TelegramGateway`, `SessionVault` |
+| `accounts.AccountService` | Login, OTP, 2FA, listado, check, restore y envío de mensajes | `AccountStore`, `TelegramGateway`, `SessionVault` |
 | `api.accounts` | HTTP OpenAPI de cuentas | `AccountService` |
+| `api.messages` | HTTP `POST /send` | `AccountService` |
+| `api.errors` | Mapeo de errores de dominio a HTTP | `core.exceptions` |
 | `api.schemas` | Contratos JSON públicos (sin sesiones ni secretos) | — |
 | `api.deps` | Cablear API key y servicio al router | `core.security`, `AccountService` |
 | `database.models.AccountRow` | Tabla `accounts` y referencia a sesión | — |
 | `database.SqlAccountStore` | Persistencia SQLite de cuentas | `AccountStore` |
-| `telegram.TelethonGateway` | Cliente Telethon vivo por cuenta (OTP, 2FA, inspect, restore) | `TelegramGateway`, Telethon |
+| `telegram.TelethonGateway` | Cliente Telethon vivo por cuenta (OTP, 2FA, inspect, restore, send_message) | `TelegramGateway`, Telethon |
 | `sessions.EncryptedSessionStore` | Archivos de sesión cifrados fuera del repo | `SessionVault`, Fernet |
 | `main.create_app` | Componer adaptadores, restaurar sesiones y montar FastAPI | piezas de arriba |
 

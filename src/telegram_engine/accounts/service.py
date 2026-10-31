@@ -4,10 +4,11 @@ import asyncio
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from telegram_engine.accounts.models import Account, AccountStatus, ConnectionReport
+from telegram_engine.accounts.models import Account, AccountStatus, ConnectionReport, SentMessage
 from telegram_engine.accounts.ports import AccountStore, SessionVault, TelegramGateway
 from telegram_engine.core.exceptions import (
     AccountNotFoundError,
+    AccountUnavailableError,
     AuthenticationInProgressError,
     DuplicatePhoneError,
     ExpiredOtpError,
@@ -130,6 +131,12 @@ class AccountService:
 
     async def list_accounts(self) -> list[Account]:
         return await self._store.list_all()
+
+    async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage:
+        account = await self._require_account(account_id)
+        if account.status != AccountStatus.CONNECTED:
+            raise AccountUnavailableError("Account is not connected")
+        return await self._telegram.send_message(account.id, chat, text)
 
     async def restore_sessions(self) -> None:
         accounts = await self._store.list_all()

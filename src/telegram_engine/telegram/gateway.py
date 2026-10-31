@@ -7,7 +7,7 @@ from telethon import TelegramClient
 from telethon.errors import PhoneCodeExpiredError, PhoneCodeInvalidError, SessionPasswordNeededError
 from telethon.sessions import StringSession
 
-from telegram_engine.accounts.models import AccountStatus, ConnectionReport, TelegramProfile
+from telegram_engine.accounts.models import AccountStatus, ConnectionReport, SentMessage, TelegramProfile
 from telegram_engine.core.exceptions import (
     ExpiredOtpError,
     InvalidOtpError,
@@ -109,6 +109,14 @@ class TelethonGateway:
             username=profile.username if profile else None,
             first_name=profile.first_name if profile else None,
         )
+
+    async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage:
+        client = self._require_client(account_id)
+        try:
+            message = await client.send_message(chat, text)
+        except Exception as exc:
+            raise TelegramOperationError(str(exc)) from exc
+        return SentMessage(outbound_id=str(getattr(message, "id", "sent")), chat=chat)
 
     async def has_pending_auth(self, account_id: UUID) -> bool:
         return account_id in self._clients

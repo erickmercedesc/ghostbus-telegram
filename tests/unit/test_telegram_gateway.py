@@ -44,6 +44,9 @@ class FakeClient:
     async def get_me(self):
         return SimpleNamespace(id=99, username="ada", first_name="Ada")
 
+    async def send_message(self, chat: str, text: str):
+        return SimpleNamespace(id=7, chat_id=chat)
+
 
 @pytest.mark.asyncio
 async def test_request_and_verify_otp():
@@ -59,6 +62,9 @@ async def test_request_and_verify_otp():
     report = await gateway.inspect(account_id)
     assert report.authorized is True
     assert report.connected is True
+    sent = await gateway.send_message(account_id, "someone", "hola")
+    assert sent.outbound_id == "7"
+    assert sent.chat == "someone"
 
 
 @pytest.mark.asyncio

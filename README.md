@@ -89,6 +89,15 @@ curl http://localhost:8000/accounts/UUID/check -H "X-API-Key: TU_KEY"
 curl http://localhost:8000/accounts -H "X-API-Key: TU_KEY"
 ```
 
+5. Enviar un mensaje con una cuenta `connected`
+
+```bash
+curl -X POST http://localhost:8000/send ^
+  -H "X-API-Key: TU_KEY" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"account\": \"UUID\", \"to\": \"username\", \"message\": \"hola\"}"
+```
+
 Al reiniciar el servicio se restauran las sesiones válidas; no se vuelve a pedir OTP si la sesión sigue vigente.
 
 ## Pruebas

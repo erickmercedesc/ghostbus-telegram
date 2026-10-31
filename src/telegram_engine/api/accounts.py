@@ -1,8 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from telegram_engine.api.deps import get_account_service
+from telegram_engine.api.errors import map_domain_error
 
 from telegram_engine.accounts.models import Account
 from telegram_engine.accounts.service import AccountService
@@ -13,17 +14,6 @@ from telegram_engine.api.schemas import (
     LoginResponse,
     Verify2faRequest,
     VerifyOtpRequest,
-)
-from telegram_engine.core.exceptions import (
-    AccountNotFoundError,
-    AuthenticationInProgressError,
-    DuplicatePhoneError,
-    ExpiredOtpError,
-    InvalidOtpError,
-    SessionUnavailableError,
-    TelegramOperationError,
-    TwoFactorRequiredError,
-    UnauthorizedError,
 )
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
@@ -42,34 +32,12 @@ def _to_account_response(account: Account) -> AccountResponse:
     )
 
 
-def _map_error(exc: Exception) -> HTTPException:
-    mapping: dict[type[Exception], tuple[int, str]] = {
-        DuplicatePhoneError: (status.HTTP_409_CONFLICT, "Phone number already registered"),
-        AccountNotFoundError: (status.HTTP_404_NOT_FOUND, "Account not found"),
-        AuthenticationInProgressError: (status.HTTP_409_CONFLICT, "Authentication already in progress"),
-        InvalidOtpError: (status.HTTP_400_BAD_REQUEST, "Invalid OTP"),
-        ExpiredOtpError: (status.HTTP_400_BAD_REQUEST, "OTP expired"),
-        SessionUnavailableError: (status.HTTP_409_CONFLICT, str(exc)),
-        TelegramOperationError: (status.HTTP_502_BAD_GATEWAY, "Telegram operation failed"),
-        UnauthorizedError: (status.HTTP_401_UNAUTHORIZED, "Unauthorized"),
-    }
-    if isinstance(exc, TwoFactorRequiredError):
-        return HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"status": "pending_2fa", "message": "Two-factor authentication required"},
-        )
-    for error_type, (code, message) in mapping.items():
-        if isinstance(exc, error_type):
-            return HTTPException(status_code=code, detail=message)
-    return HTTPException(status_code=500, detail="Internal error")
-
-
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 async def login(payload: LoginRequest, service: AccountService = Depends(get_account_service)) -> LoginResponse:
     try:
         account = await service.login(payload.phone_number)
     except Exception as exc:
-        raise _map_error(exc) from exc
+        raise map_domain_error(exc) from exc
     return LoginResponse(
         account_id=account.id,
         status=account.status.value,
@@ -82,7 +50,7 @@ async def verify_otp(payload: VerifyOtpRequest, service: AccountService = Depend
     try:
         account = await service.verify_otp(payload.account_id, payload.otp)
     except Exception as exc:
-        raise _map_error(exc) from exc
+        raise map_domain_error(exc) from exc
     return _to_account_response(account)
 
 
@@ -91,7 +59,7 @@ async def verify_2fa(payload: Verify2faRequest, service: AccountService = Depend
     try:
         account = await service.verify_2fa(payload.account_id, payload.password)
     except Exception as exc:
-        raise _map_error(exc) from exc
+        raise map_domain_error(exc) from exc
     return _to_account_response(account)
 
 
@@ -100,7 +68,7 @@ async def check_account(account_id: UUID, service: AccountService = Depends(get_
     try:
         report = await service.check(account_id)
     except Exception as exc:
-        raise _map_error(exc) from exc
+        raise map_domain_error(exc) from exc
     return CheckResponse(
         id=report.account_id,
         status=report.status.value,

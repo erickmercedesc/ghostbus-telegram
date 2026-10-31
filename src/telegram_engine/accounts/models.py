@@ -12,6 +12,12 @@ class AccountStatus(StrEnum):
 
 
 @dataclass(slots=True)
+class SentMessage:
+    outbound_id: str
+    chat: str
+
+
+@dataclass(slots=True)
 class TelegramProfile:
     telegram_id: int
     username: str | None
