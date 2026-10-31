@@ -4,7 +4,7 @@ Fuente única de la arquitectura. Cada pieza aparece aquí una vez, con una sola
 
 ## Estado
 
-Servicio FastAPI que registra cuentas personales de Telegram, autentica con OTP/2FA, mantiene sesiones Telethon vivas y envía mensajes con una cuenta conectada. Fuera de alcance: grupos, scripts, workers y dashboard.
+Servicio FastAPI que registra cuentas personales de Telegram, autentica con OTP/2FA, mantiene sesiones Telethon vivas, envía mensajes y notifica por webhook los mensajes entrantes. Fuera de alcance: grupos, scripts, workers y dashboard.
 
 ## Arranque
 
@@ -15,7 +15,9 @@ Composición concreta:
 - `SqlAccountStore` implementa `AccountStore`
 - `TelethonGateway` implementa `TelegramGateway`
 - `EncryptedSessionStore` implementa `SessionVault`
-- `AccountService` recibe esos tres puertos
+- `IncomingWebhook` implementa `IncomingMessageSink`
+- `TelethonGateway` entrega mensajes entrantes al sink
+- `AccountService` recibe store, gateway y vault
 - FastAPI inyecta el servicio en `api` y exige `X-API-Key`
 
 ## Arquitectura
@@ -24,6 +26,8 @@ Composición concreta:
 api  →  accounts.AccountService  →  AccountStore | TelegramGateway | SessionVault
                                          ↑                ↑                 ↑
                                  SqlAccountStore   TelethonGateway  EncryptedSessionStore
+                                                       │
+                                                       └→ IncomingMessageSink (IncomingWebhook)
 ```
 
 ## Responsabilidades
@@ -43,7 +47,8 @@ api  →  accounts.AccountService  →  AccountStore | TelegramGateway | Session
 | `api.deps` | Cablear API key y servicio al router | `core.security`, `AccountService` |
 | `database.models.AccountRow` | Tabla `accounts` y referencia a sesión | — |
 | `database.SqlAccountStore` | Persistencia SQLite de cuentas | `AccountStore` |
-| `telegram.TelethonGateway` | Cliente Telethon vivo por cuenta (OTP, 2FA, inspect, restore, send_message) | `TelegramGateway`, Telethon |
+| `telegram.TelethonGateway` | Cliente Telethon vivo (auth, inspect, restore, send y mensajes entrantes) | `TelegramGateway`, `IncomingMessageSink` |
+| `webhooks.IncomingWebhook` | POST del mensaje recibido a `INCOMING_WEBHOOK_URL` | `IncomingMessageSink`, httpx |
 | `sessions.EncryptedSessionStore` | Archivos de sesión cifrados fuera del repo | `SessionVault`, Fernet |
 | `main.create_app` | Componer adaptadores, restaurar sesiones y montar FastAPI | piezas de arriba |
 

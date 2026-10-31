@@ -3,11 +3,18 @@ from __future__ import annotations
 from collections.abc import Callable
 from uuid import UUID
 
-from telethon import TelegramClient
+from telethon import TelegramClient, events
 from telethon.errors import PhoneCodeExpiredError, PhoneCodeInvalidError, SessionPasswordNeededError
 from telethon.sessions import StringSession
 
-from telegram_engine.accounts.models import AccountStatus, ConnectionReport, SentMessage, TelegramProfile
+from telegram_engine.accounts.models import (
+    AccountStatus,
+    ConnectionReport,
+    IncomingMessage,
+    SentMessage,
+    TelegramProfile,
+)
+from telegram_engine.accounts.ports import IncomingMessageSink
 from telegram_engine.core.exceptions import (
     ExpiredOtpError,
     InvalidOtpError,
@@ -25,6 +32,40 @@ class TelethonGateway:
         self._api_hash = api_hash
         self._clients: dict[UUID, TelegramClient] = {}
         self._factory = client_factory or self._default_factory
+        self._incoming: IncomingMessageSink | None = None
+        self._listening: set[UUID] = set()
+
+    def set_incoming_sink(self, sink: IncomingMessageSink) -> None:
+        self._incoming = sink
+        for account_id, client in self._clients.items():
+            self._listen(account_id, client)
+
+    def _listen(self, account_id: UUID, client: TelegramClient) -> None:
+        if account_id in self._listening:
+            return
+        self._listening.add(account_id)
+
+        async def on_new_message(event) -> None:
+            if self._incoming is None or getattr(event, "out", False):
+                return
+            try:
+                sender = await event.get_sender()
+                name = getattr(sender, "username", None) or str(getattr(sender, "id", event.chat_id))
+                await self._incoming.publish(
+                    IncomingMessage(
+                        account_id=account_id,
+                        message=event.raw_text or "",
+                        sender=str(name),
+                    )
+                )
+            except Exception:
+                return
+
+        client.add_event_handler(on_new_message, events.NewMessage(incoming=True))
+
+    def _register(self, account_id: UUID, client: TelegramClient) -> None:
+        self._clients[account_id] = client
+        self._listen(account_id, client)
 
     def _default_factory(self, session_payload: str | None) -> TelegramClient:
         session = StringSession(session_payload) if session_payload else StringSession()
@@ -38,7 +79,7 @@ class TelethonGateway:
         except Exception as exc:
             await client.disconnect()
             raise TelegramOperationError(str(exc)) from exc
-        self._clients[account_id] = client
+        self._register(account_id, client)
 
     async def verify_otp(
         self, account_id: UUID, phone_number: str, otp: str
@@ -78,7 +119,7 @@ class TelethonGateway:
         except Exception:
             await client.disconnect()
             return False
-        self._clients[account_id] = client
+        self._register(account_id, client)
         return True
 
     async def inspect(self, account_id: UUID) -> ConnectionReport:
@@ -117,6 +158,15 @@ class TelethonGateway:
         except Exception as exc:
             raise TelegramOperationError(str(exc)) from exc
         return SentMessage(outbound_id=str(getattr(message, "id", "sent")), chat=chat)
+
+    async def disconnect_all(self) -> None:
+        for client in list(self._clients.values()):
+            try:
+                await client.disconnect()
+            except Exception:
+                continue
+        self._clients.clear()
+        self._listening.clear()
 
     async def has_pending_auth(self, account_id: UUID) -> bool:
         return account_id in self._clients

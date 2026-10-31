@@ -47,6 +47,10 @@ class FakeClient:
     async def send_message(self, chat: str, text: str):
         return SimpleNamespace(id=7, chat_id=chat)
 
+    def add_event_handler(self, callback, event) -> None:
+        self.handlers = getattr(self, "handlers", [])
+        self.handlers.append(callback)
+
 
 @pytest.mark.asyncio
 async def test_request_and_verify_otp():

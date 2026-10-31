@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     session_store_path: Path = Path("./data/sessions")
     session_encryption_key: str = ""
     internal_api_key: str = Field(min_length=1, default="dev-internal-key")
+    incoming_webhook_url: str = ""
 
 
 def get_settings() -> Settings:

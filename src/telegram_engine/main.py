@@ -11,6 +11,7 @@ from telegram_engine.database.engine import create_session_factory, init_schema
 from telegram_engine.database.repository import SqlAccountStore
 from telegram_engine.sessions.encrypted_store import EncryptedSessionStore
 from telegram_engine.telegram.gateway import TelethonGateway
+from telegram_engine.webhooks.incoming import IncomingWebhook
 
 
 def create_app(
@@ -28,12 +29,17 @@ def create_app(
             store = SqlAccountStore(factory)
             telegram = TelethonGateway(settings.telegram_api_id, settings.telegram_api_hash)
             sessions = EncryptedSessionStore(settings.session_store_path, settings.session_encryption_key)
+            telegram.set_incoming_sink(IncomingWebhook(settings.incoming_webhook_url))
             app.state.account_service = AccountService(store, telegram, sessions)
+            app.state.telegram = telegram
             if restore_on_startup:
                 await app.state.account_service.restore_sessions()
         else:
             app.state.account_service = service
         yield
+        telegram_client = getattr(app.state, "telegram", None)
+        if telegram_client is not None:
+            await telegram_client.disconnect_all()
 
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
     if service is not None:

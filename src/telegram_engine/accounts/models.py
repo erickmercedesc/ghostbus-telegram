@@ -12,6 +12,13 @@ class AccountStatus(StrEnum):
 
 
 @dataclass(slots=True)
+class IncomingMessage:
+    account_id: UUID
+    message: str
+    sender: str
+
+
+@dataclass(slots=True)
 class SentMessage:
     outbound_id: str
     chat: str

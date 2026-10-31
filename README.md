@@ -18,6 +18,7 @@ Copia `.env.example` a `.env` y completa:
 | `SESSION_STORE_PATH` | Directorio privado para sesiones cifradas (fuera de git) |
 | `SESSION_ENCRYPTION_KEY` | Clave Fernet |
 | `INTERNAL_API_KEY` | Valor de `X-API-Key` en todas las rutas |
+| `INCOMING_WEBHOOK_URL` | POST JSON cada vez que una cuenta recibe un mensaje. Vacío = no notificar. |
 
 Generar la clave de cifrado:
 
@@ -99,6 +100,18 @@ curl -X POST http://localhost:8000/send ^
 ```
 
 Al reiniciar el servicio se restauran las sesiones válidas; no se vuelve a pedir OTP si la sesión sigue vigente.
+
+Cuando una cuenta `connected` recibe un mensaje, el servicio hace POST a `INCOMING_WEBHOOK_URL`:
+
+```json
+{
+  "account_id": "UUID",
+  "message": "texto",
+  "from": "username"
+}
+```
+
+`from` es el username de Telegram o, si no hay, el id numérico.
 
 ## Pruebas
 
