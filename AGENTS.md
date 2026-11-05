@@ -40,6 +40,12 @@ Bien: el caso de uso depende de MessageSender; el arranque inyecta TelegramMessa
 
 Actualízalo en el mismo cambio cuando varíe cómo se levanta el servicio, qué variables de entorno hace falta, o cómo se llaman los endpoints públicos. Un operador debe poder arrancar y usar el servicio solo con ese archivo.
 
+Si cambian rutas o esquemas HTTP públicos, regenera `swagger.json` en el mismo cambio:
+
+```bash
+python scripts/export_openapi.py
+```
+
 ## Al cerrar un cambio de estructura
 
 Actualiza en `Project.md`, en el mismo cambio:

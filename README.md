@@ -13,6 +13,7 @@ Copia `.env.example` a `.env` y completa:
 
 | Variable | Uso |
 | --- | --- |
+| `PORT` | Puerto HTTP del servicio (por defecto `8000`) |
 | `DATABASE_URL` | SQLite async, p. ej. `sqlite+aiosqlite:///./data/telegram_engine.db` |
 | `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` | Credenciales de la app Telegram |
 | `SESSION_STORE_PATH` | Directorio privado para sesiones cifradas (fuera de git) |
@@ -32,7 +33,7 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 docker compose up --build
 ```
 
-La API queda en `http://localhost:8000`. OpenAPI: `http://localhost:8000/docs`. SQLite y las sesiones viven en el volumen `appdata`.
+La API queda en `http://localhost:8000`. OpenAPI interactivo: `http://localhost:8000/docs`. Spec estática: `swagger.json` (regenerar con `python scripts/export_openapi.py`). SQLite y las sesiones viven en el volumen `appdata`.
 
 ## Arranque local
 

@@ -51,5 +51,6 @@ api  →  accounts.AccountService  →  AccountStore | TelegramGateway | Session
 | `webhooks.IncomingWebhook` | POST del mensaje recibido a `INCOMING_WEBHOOK_URL` | `IncomingMessageSink`, httpx |
 | `sessions.EncryptedSessionStore` | Archivos de sesión cifrados fuera del repo | `SessionVault`, Fernet |
 | `main.create_app` | Componer adaptadores, restaurar sesiones y montar FastAPI | piezas de arriba |
+| `scripts/export_openapi.py` | Escribir el OpenAPI vivo de FastAPI en `swagger.json` | `create_app` |
 
 Al agregar, mover o eliminar una pieza, actualiza esta tabla en el mismo cambio. Una fila por pieza. La columna de responsabilidad cabe en una frase y nombra una sola razón de cambio.
