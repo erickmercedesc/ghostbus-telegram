@@ -39,7 +39,7 @@ api  →  accounts.AccountService  →  AccountStore | TelegramGateway | Session
 | `core.security` | Validar la API key interna | `Settings` |
 | `accounts.models` | Tipos de cuenta, estado y reporte de conexión | — |
 | `accounts.ports` | Contratos de persistencia, Telegram y sesiones | `accounts.models` |
-| `accounts.AccountService` | Login, OTP, 2FA, listado, check, restore y envío de mensajes | `AccountStore`, `TelegramGateway`, `SessionVault` |
+| `accounts.AccountService` | Login, OTP, 2FA, listado, check, restore, envío y eliminación de cuentas | `AccountStore`, `TelegramGateway`, `SessionVault` |
 | `api.accounts` | HTTP OpenAPI de cuentas | `AccountService` |
 | `api.messages` | HTTP `POST /send` | `AccountService` |
 | `api.errors` | Mapeo de errores de dominio a HTTP | `core.exceptions` |

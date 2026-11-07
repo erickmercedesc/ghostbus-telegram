@@ -132,6 +132,15 @@ class AccountService:
     async def list_accounts(self) -> list[Account]:
         return await self._store.list_all()
 
+    async def delete_account(self, account_id: UUID) -> None:
+        account = await self._require_account(account_id)
+        lock = self._lock_for(account.phone_number)
+        async with lock:
+            await self._telegram.drop_client(account.id)
+            if account.session_ref:
+                await self._sessions.delete(account.session_ref)
+            await self._store.delete(account.id)
+
     async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage:
         account = await self._require_account(account_id)
         if account.status != AccountStatus.CONNECTED:

@@ -159,6 +159,16 @@ class TelethonGateway:
             raise TelegramOperationError(str(exc)) from exc
         return SentMessage(outbound_id=str(getattr(message, "id", "sent")), chat=chat)
 
+    async def drop_client(self, account_id: UUID) -> None:
+        client = self._clients.pop(account_id, None)
+        self._listening.discard(account_id)
+        if client is None:
+            return
+        try:
+            await client.disconnect()
+        except Exception:
+            return
+
     async def disconnect_all(self) -> None:
         for client in list(self._clients.values()):
             try:

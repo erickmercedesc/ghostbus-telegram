@@ -30,6 +30,9 @@ class FakeAccountStore:
     async def list_all(self) -> list[Account]:
         return list(self.by_id.values())
 
+    async def delete(self, account_id: UUID) -> None:
+        self.by_id.pop(account_id, None)
+
 
 class FakeSessionVault:
     def __init__(self) -> None:
@@ -45,6 +48,9 @@ class FakeSessionVault:
 
     async def exists(self, session_ref: str) -> bool:
         return session_ref in self.files
+
+    async def delete(self, session_ref: str) -> None:
+        self.files.pop(session_ref, None)
 
 
 class FakeTelegramGateway:
@@ -124,6 +130,12 @@ class FakeTelegramGateway:
     async def send_message(self, account_id: UUID, chat: str, text: str) -> SentMessage:
         self.sent.append((account_id, chat, text))
         return SentMessage(outbound_id=str(len(self.sent)), chat=chat)
+
+    async def drop_client(self, account_id: UUID) -> None:
+        self.sessions.pop(account_id, None)
+        self.authorized.pop(account_id, None)
+        self.connected.pop(account_id, None)
+        self.otp_requested.discard(account_id)
 
     async def has_pending_auth(self, account_id: UUID) -> bool:
         return account_id in self.otp_requested

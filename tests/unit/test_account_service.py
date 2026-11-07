@@ -174,3 +174,18 @@ async def test_send_message_uses_connected_account():
     sent = await service.send_message(connected.id, "someone", "hello")
     assert sent.chat == "someone"
     assert telegram.sent == [(connected.id, "someone", "hello")]
+
+
+@pytest.mark.asyncio
+async def test_delete_account_removes_session_and_record():
+    service, store, telegram, sessions = make_service()
+    account = await service.login("+15550006666")
+    connected = await service.verify_otp(account.id, "12345")
+    assert connected.session_ref is not None
+    assert await sessions.exists(connected.session_ref)
+
+    await service.delete_account(connected.id)
+
+    assert await store.get_by_id(connected.id) is None
+    assert await sessions.exists(connected.session_ref) is False
+    assert connected.id not in telegram.sessions

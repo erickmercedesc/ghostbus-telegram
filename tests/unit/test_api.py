@@ -141,3 +141,20 @@ def test_send_message():
     assert sent.status_code == 200
     assert sent.json()["to"] == "someone"
     assert telegram.sent[0][2] == "hello"
+
+
+def test_delete_account():
+    client, _, _ = make_client()
+    login = client.post("/accounts/login", json={"phone_number": "+15550001111"}, headers=auth_headers())
+    account_id = login.json()["account_id"]
+    client.post(
+        "/accounts/verify-otp",
+        json={"account_id": account_id, "otp": "12345"},
+        headers=auth_headers(),
+    )
+    deleted = client.delete(f"/accounts/{account_id}", headers=auth_headers())
+    assert deleted.status_code == 204
+    listed = client.get("/accounts", headers=auth_headers())
+    assert listed.json() == []
+    missing = client.delete(f"/accounts/{account_id}", headers=auth_headers())
+    assert missing.status_code == 404

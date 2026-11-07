@@ -91,7 +91,13 @@ curl http://localhost:8000/accounts/UUID/check -H "X-API-Key: TU_KEY"
 curl http://localhost:8000/accounts -H "X-API-Key: TU_KEY"
 ```
 
-5. Enviar un mensaje con una cuenta `connected`
+5. Eliminar una cuenta (cierra el cliente, borra la sesión y el registro)
+
+```bash
+curl -X DELETE http://localhost:8000/accounts/UUID -H "X-API-Key: TU_KEY"
+```
+
+6. Enviar un mensaje con una cuenta `connected`
 
 ```bash
 curl -X POST http://localhost:8000/send ^

@@ -38,3 +38,5 @@ async def test_sql_store_roundtrip(store: SqlAccountStore):
     listed = await store.list_all()
     assert listed[0].status == AccountStatus.CONNECTED
     assert updated.session_ref == "abc.session.enc"
+    await store.delete(saved.id)
+    assert await store.get_by_id(saved.id) is None

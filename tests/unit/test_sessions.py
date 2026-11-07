@@ -20,3 +20,5 @@ async def test_encrypted_session_roundtrip(tmp_path: Path):
     assert b"session-string" not in raw
     assert await store.load(ref) == "session-string"
     assert await store.exists(ref) is True
+    await store.delete(ref)
+    assert await store.exists(ref) is False

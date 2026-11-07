@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 
 from telegram_engine.api.deps import get_account_service
 from telegram_engine.api.errors import map_domain_error
@@ -86,3 +86,12 @@ async def check_account(account_id: UUID, service: AccountService = Depends(get_
 async def list_accounts(service: AccountService = Depends(get_account_service)) -> list[AccountResponse]:
     accounts = await service.list_accounts()
     return [_to_account_response(account) for account in accounts]
+
+
+@router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(account_id: UUID, service: AccountService = Depends(get_account_service)) -> Response:
+    try:
+        await service.delete_account(account_id)
+    except Exception as exc:
+        raise map_domain_error(exc) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

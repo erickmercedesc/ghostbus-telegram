@@ -70,6 +70,13 @@ class SqlAccountStore:
             result = await session.execute(select(AccountRow))
             return [_to_domain(row) for row in result.scalars().all()]
 
+    async def delete(self, account_id: UUID) -> None:
+        async with self._factory() as session:
+            row = await session.get(AccountRow, account_id)
+            if row is not None:
+                await session.delete(row)
+                await session.commit()
+
     async def _fetch_by_phone(self, session: AsyncSession, phone_number: str) -> AccountRow | None:
         result = await session.execute(
             select(AccountRow).where(AccountRow.phone_number == phone_number)
