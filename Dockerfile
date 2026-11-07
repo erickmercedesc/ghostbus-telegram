@@ -4,7 +4,5 @@ WORKDIR /app
 COPY pyproject.toml /app/
 COPY src /app/src
 RUN pip install --no-cache-dir .
-COPY . /app
-
-ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1
 CMD ["python", "-m", "telegram_engine"]

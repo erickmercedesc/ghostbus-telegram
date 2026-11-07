@@ -1,0 +1,15 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.mypy_cache
+*.pyc
+.env
+data
+*.db
+/sessions
+*.session
+*.session.enc
+.coverage
+dist
+*.egg-info

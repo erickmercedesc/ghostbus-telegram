@@ -6,7 +6,7 @@ __pycache__/
 .env
 data/
 *.db
-sessions/
+/sessions/
 *.session
 *.session.enc
 .coverage
