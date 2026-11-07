@@ -38,5 +38,9 @@ class TelegramOperationError(TelegramEngineError):
     """Telegram rejected or failed an operation."""
 
 
+class UnsupportedDatabaseError(TelegramEngineError):
+    """DATABASE_URL uses a dialect this service does not run."""
+
+
 class AccountUnavailableError(TelegramEngineError):
     """The account exists but is not connected."""

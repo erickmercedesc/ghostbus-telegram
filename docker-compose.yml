@@ -2,8 +2,10 @@ services:
   api:
     build: .
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: sqlite+aiosqlite:////var/lib/telegram-engine/data/telegram_engine.db
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:////var/lib/telegram-engine/data/telegram_engine.db}
       SESSION_STORE_PATH: /var/lib/telegram-engine/sessions
     volumes:
       - appdata:/var/lib/telegram-engine

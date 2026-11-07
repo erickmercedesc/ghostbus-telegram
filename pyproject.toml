@@ -12,6 +12,7 @@ dependencies = [
   "telethon>=1.37.0",
   "sqlalchemy[asyncio]>=2.0.36",
   "aiosqlite>=0.20.0",
+  "aiomysql>=0.2.0",
   "cryptography>=43.0.0",
   "pydantic-settings>=2.6.0",
   "greenlet>=3.1.0",

@@ -46,7 +46,8 @@ api  →  accounts.AccountService  →  AccountStore | TelegramGateway | Session
 | `api.schemas` | Contratos JSON públicos (sin sesiones ni secretos) | — |
 | `api.deps` | Cablear API key y servicio al router | `core.security`, `AccountService` |
 | `database.models.AccountRow` | Tabla `accounts` y referencia a sesión | — |
-| `database.SqlAccountStore` | Persistencia SQLite de cuentas | `AccountStore` |
+| `database.engine` | Crear el engine async (SQLite o MySQL externo) según `DATABASE_URL` | SQLAlchemy |
+| `database.SqlAccountStore` | Persistencia de cuentas (SQLite o MySQL) | `AccountStore` |
 | `telegram.TelethonGateway` | Cliente Telethon vivo (auth, inspect, restore, send y mensajes entrantes) | `TelegramGateway`, `IncomingMessageSink` |
 | `webhooks.IncomingWebhook` | POST del mensaje recibido a `INCOMING_WEBHOOK_URL` | `IncomingMessageSink`, httpx |
 | `sessions.EncryptedSessionStore` | Archivos de sesión cifrados fuera del repo | `SessionVault`, Fernet |

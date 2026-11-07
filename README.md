@@ -14,7 +14,7 @@ Copia `.env.example` a `.env` y completa:
 | Variable | Uso |
 | --- | --- |
 | `PORT` | Puerto HTTP del servicio (por defecto `8000`) |
-| `DATABASE_URL` | SQLite async, p. ej. `sqlite+aiosqlite:///./data/telegram_engine.db` |
+| `DATABASE_URL` | SQLite (por defecto) o MySQL externo. Ver abajo. |
 | `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` | Credenciales de la app Telegram |
 | `SESSION_STORE_PATH` | Directorio privado para sesiones cifradas (fuera de git) |
 | `SESSION_ENCRYPTION_KEY` | Clave Fernet |
@@ -33,7 +33,7 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 docker compose up --build
 ```
 
-La API queda en `http://localhost:8000`. OpenAPI interactivo: `http://localhost:8000/docs`. Spec estática: `swagger.json` (regenerar con `python scripts/export_openapi.py`). SQLite y las sesiones viven en el volumen `appdata`.
+La API queda en `http://localhost:8000`. OpenAPI interactivo: `http://localhost:8000/docs`. Spec estática: `swagger.json` (regenerar con `python scripts/export_openapi.py`). Con SQLite, la base y las sesiones van al volumen `appdata`. Con MySQL, `DATABASE_URL` del `.env` apunta al servidor externo; las sesiones cifradas siguen en el volumen.
 
 ## Arranque local
 
@@ -45,6 +45,22 @@ python -m telegram_engine
 ```
 
 El archivo SQLite se crea en `data/telegram_engine.db` si no existe.
+
+### Base de datos
+
+**SQLite** (por defecto):
+
+```text
+DATABASE_URL=sqlite+aiosqlite:///./data/telegram_engine.db
+```
+
+**MySQL externo** (el servicio no incluye MySQL en Docker; usa un servidor que ya tengas):
+
+```text
+DATABASE_URL=mysql+aiomysql://usuario:clave@host:3306/telegram_engine
+```
+
+Crea la base `telegram_engine` en MySQL; las tablas se generan al arrancar. Desde Docker, `localhost` es el contenedor: usa `host.docker.internal` si MySQL está en la misma máquina, o la IP/hostname del servidor.
 
 ## Uso
 
